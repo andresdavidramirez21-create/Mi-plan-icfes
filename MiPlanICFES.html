@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="default"/>
+<meta name="apple-mobile-web-app-title" content="Mi Plan ICFES"/>
+<title>Mi Plan ICFES</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0;}
+  :root{
+    --blue:#1a56db;--blue-light:#e8f0fe;--blue-dark:#0c3a8a;
+    --green:#0e7f4f;--green-light:#e6f4ee;
+    --amber:#b45309;--amber-light:#fef3c7;
+    --red:#b91c1c;--red-light:#fee2e2;
+    --purple:#6d28d9;--purple-light:#ede9fe;
+    --teal:#0f766e;--teal-light:#ccfbf1;
+    --bg:#f4f6fb;--surface:#ffffff;--surface2:#f0f2f8;
+    --text:#1a1d2e;--text2:#5a6278;--text3:#9aa3ba;
+    --border:#e2e6f0;--border2:#c8cedf;
+    --radius:12px;--radius-sm:8px;
+  }
+  @media(prefers-color-scheme:dark){
+    :root{
+      --bg:#0f1117;--surface:#1a1d2e;--surface2:#242838;
+      --text:#e8ecf5;--text2:#8a93a8;--text3:#5a6278;
+      --border:#2a2f42;--border2:#3a4055;
+      --blue-light:#1a2550;--green-light:#0a2818;--amber-light:#2a1a00;--purple-light:#1a0e38;
+    }
+  }
+  html,body{height:100%;background:var(--bg);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:var(--text);}
+  .app{max-width:480px;margin:0 auto;min-height:100vh;display:flex;flex-direction:column;background:var(--bg);}
+
+  /* HEADER */
+  .header{background:var(--surface);border-bottom:1px solid var(--border);padding:14px 16px 10px;position:sticky;top:0;z-index:100;}
+  .header-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
+  .header-title{font-size:20px;font-weight:700;color:var(--blue);}
+  .header-sub{font-size:12px;color:var(--text2);margin-top:1px;}
+  .score-badge{background:var(--blue-light);color:var(--blue);border-radius:20px;padding:6px 14px;font-size:18px;font-weight:700;}
+
+  /* NAV */
+  .nav{display:flex;gap:2px;overflow-x:auto;scrollbar-width:none;background:var(--surface);padding:0 8px 8px;}
+  .nav::-webkit-scrollbar{display:none;}
+  .nav-btn{flex:0 0 auto;padding:8px 14px;font-size:13px;background:none;border:none;border-radius:20px;cursor:pointer;color:var(--text2);font-weight:500;transition:all .15s;white-space:nowrap;}
+  .nav-btn.active{background:var(--blue);color:#fff;}
+  .nav-btn:hover:not(.active){background:var(--surface2);}
+
+  /* CONTENT */
+  .content{flex:1;overflow-y:auto;padding:14px 12px 80px;}
+  .tab{display:none;}
+  .tab.active{display:block;}
+
+  /* CARDS */
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px;margin-bottom:12px;}
+  .card-title{font-size:13px;font-weight:600;color:var(--text2);margin-bottom:10px;display:flex;align-items:center;gap:6px;}
+  .card-title i{font-size:16px;}
+
+  /* BADGES */
+  .badge{display:inline-block;font-size:11px;padding:2px 9px;border-radius:20px;font-weight:600;}
+  .badge-blue{background:var(--blue-light);color:var(--blue);}
+  .badge-green{background:var(--green-light);color:var(--green);}
+  .badge-amber{background:var(--amber-light);color:var(--amber);}
+  .badge-red{background:var(--red-light);color:var(--red);}
+  .badge-purple{background:var(--purple-light);color:var(--purple);}
+  .badge-teal{background:var(--teal-light);color:var(--teal);}
+
+  /* PROGRESS */
+  .progress-bar{height:8px;background:var(--surface2);border-radius:4px;overflow:hidden;margin:6px 0;}
+  .progress-fill{height:100%;border-radius:4px;transition:width .5s ease;}
+
+  /* CHECKLIST */
+  .checklist-item{display:flex;align-items:flex-start;gap:10px;padding:10px 0;border-bottom:1px solid var(--border);}
+  .checklist-item:last-child{border-bottom:none;}
+  .check-box{width:22px;height:22px;border-radius:7px;border:2px solid var(--border2);cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all .15s;background:none;margin-top:1px;}
+  .check-box.done{background:var(--blue);border-color:var(--blue);}
+  .check-box.done::after{content:'✓';color:white;font-size:13px;font-weight:700;}
+  .check-label{font-size:14px;line-height:1.4;color:var(--text);}
+  .check-label.done{text-decoration:line-through;color:var(--text3);}
+  .check-meta{font-size:11px;color:var(--text3);margin-top:2px;}
+
+  /* SCHEDULE */
+  .schedule-row{display:grid;grid-template-columns:64px 1fr;gap:8px;align-items:start;margin-bottom:7px;}
+  .time-label{font-size:11px;color:var(--text3);text-align:right;padding-top:9px;font-weight:500;}
+  .schedule-block{border-radius:var(--radius-sm);padding:8px 11px;font-size:13px;line-height:1.4;}
+
+  /* STATS */
+  .stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;}
+  .stat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);padding:14px;text-align:center;}
+  .stat-num{font-size:26px;font-weight:700;color:var(--text);}
+  .stat-lbl{font-size:11px;color:var(--text2);margin-top:3px;}
+
+  /* STREAK */
+  .streak-row{display:flex;gap:6px;margin:6px 0;}
+  .streak-dot{width:34px;height:34px;border-radius:50%;background:var(--surface2);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;color:var(--text3);}
+  .streak-dot.filled{background:var(--blue);color:#fff;border-color:var(--blue);}
+  .streak-dot.today{border:2px solid var(--blue);}
+
+  /* FORMS */
+  .input-field{width:100%;padding:10px 13px;border-radius:var(--radius-sm);border:1px solid var(--border2);font-size:14px;font-family:inherit;background:var(--surface);color:var(--text);margin-bottom:9px;outline:none;transition:border .15s;}
+  .input-field:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(26,86,219,.12);}
+  .textarea-field{width:100%;padding:10px 13px;border-radius:var(--radius-sm);border:1px solid var(--border2);font-size:14px;font-family:inherit;background:var(--surface);color:var(--text);resize:vertical;min-height:90px;outline:none;transition:border .15s;}
+  .textarea-field:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(26,86,219,.12);}
+
+  /* BUTTONS */
+  .btn{padding:11px 18px;border-radius:var(--radius-sm);font-size:14px;font-weight:600;cursor:pointer;border:none;font-family:inherit;transition:all .15s;}
+  .btn-primary{background:var(--blue);color:white;width:100%;}
+  .btn-primary:hover{background:var(--blue-dark);}
+  .btn-primary:active{transform:scale(.98);}
+  .btn-sm{padding:5px 10px;font-size:12px;border-radius:6px;background:none;border:1px solid var(--border2);color:var(--text2);cursor:pointer;font-family:inherit;}
+  .btn-sm:hover{background:var(--surface2);}
+  .btn-danger{background:none;border:none;color:var(--text3);font-size:18px;cursor:pointer;padding:2px 5px;line-height:1;}
+  .btn-danger:hover{color:var(--red);}
+
+  /* ITEMS */
+  .tarea-item{padding:10px 0;border-bottom:1px solid var(--border);}
+  .tarea-item:last-child{border-bottom:none;}
+  .tarea-header{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;}
+  .tarea-title{font-size:14px;font-weight:500;color:var(--text);}
+  .tarea-meta{font-size:11px;color:var(--text3);margin-top:3px;display:flex;gap:6px;align-items:center;}
+  .tarea-actions{display:flex;gap:4px;align-items:center;flex-shrink:0;}
+  .goal-item{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border);}
+  .goal-item:last-child{border-bottom:none;}
+  .goal-check{width:22px;height:22px;border-radius:50%;border:2px solid var(--border2);cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all .15s;background:none;}
+  .goal-check.done{background:var(--green);border-color:var(--green);}
+  .goal-check.done::after{content:'✓';color:white;font-size:12px;font-weight:700;}
+
+  .aprendido-entry{padding:11px;background:var(--surface2);border-radius:var(--radius-sm);margin-bottom:8px;}
+  .aprendido-date{font-size:11px;color:var(--text3);margin-bottom:4px;font-weight:500;}
+  .aprendido-text{font-size:13px;color:var(--text);line-height:1.5;}
+
+  .meta-list{list-style:none;}
+  .meta-list li{display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid var(--border);font-size:13px;}
+  .meta-list li:last-child{border-bottom:none;}
+  .meta-list li span:first-child{color:var(--text2);}
+  .meta-list li span:last-child{font-weight:600;color:var(--text);}
+
+  .empty-state{text-align:center;padding:24px 0;color:var(--text3);font-size:13px;}
+
+  .section-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text3);margin:14px 0 6px;}
+
+  /* COUNTDOWN */
+  .countdown-big{font-size:48px;font-weight:800;color:var(--blue);line-height:1;}
+  .countdown-sub{font-size:13px;color:var(--text2);margin-top:4px;}
+
+  /* CHART wrapper */
+  .chart-wrap{position:relative;width:100%;}
+
+  @media(max-width:380px){
+    .nav-btn{padding:7px 11px;font-size:12px;}
+    .stat-num{font-size:22px;}
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <!-- HEADER -->
+  <div class="header">
+    <div class="header-top">
+      <div>
+        <div class="header-title">Mi Plan ICFES 🎯</div>
+        <div class="header-sub">Meta: 400 pts · Grado 10° · Pre-Saber 27 jul</div>
+      </div>
+      <div class="score-badge" id="score-badge">0 pts</div>
+    </div>
+    <nav class="nav">
+      <button class="nav-btn active" onclick="showTab('inicio',this)">Inicio</button>
+      <button class="nav-btn" onclick="showTab('habitos',this)">Hábitos</button>
+      <button class="nav-btn" onclick="showTab('estudio',this)">Estudio</button>
+      <button class="nav-btn" onclick="showTab('tareas',this)">Tareas</button>
+      <button class="nav-btn" onclick="showTab('metas',this)">Metas</button>
+      <button class="nav-btn" onclick="showTab('progreso',this)">Progreso</button>
+    </nav>
+  </div>
+
+  <div class="content">
+
+    <!-- ===== INICIO ===== -->
+    <div class="tab active" id="tab-inicio">
+      <div class="card" style="background:linear-gradient(135deg,#1a56db,#0c3a8a);border:none;">
+        <div style="color:rgba(255,255,255,.7);font-size:12px;margin-bottom:4px;">Días para las Pre-Saber (27 julio)</div>
+        <div class="countdown-big" style="color:#fff;" id="dias-restantes">—</div>
+        <div style="color:rgba(255,255,255,.8);font-size:13px;margin-top:6px;" id="dias-sub">Calculando...</div>
+        <div class="progress-bar" style="margin-top:10px;background:rgba(255,255,255,.2);">
+          <div class="progress-fill" style="background:#fff;" id="meta-progreso"></div>
+        </div>
+        <div style="color:rgba(255,255,255,.6);font-size:11px;margin-top:4px;" id="meta-pct"></div>
+      </div>
+
+      <div class="stat-grid">
+        <div class="stat-card">
+          <div class="stat-num" id="stat-habitos-hoy">0/0</div>
+          <div class="stat-lbl">Hábitos hoy</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-num" id="stat-tareas-pend">0</div>
+          <div class="stat-lbl">Tareas pendientes</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title"><i class="ti ti-flame"></i> Racha semanal</div>
+        <div class="streak-row" id="streak-row"></div>
+        <div style="font-size:12px;color:var(--text3);margin-top:8px;">Completa tus hábitos cada día para mantener tu racha</div>
+      </div>
+
+      <div class="card">
+        <div class="card-title"><i class="ti ti-calendar"></i> Tu día de hoy — <span id="dia-nombre" style="color:var(--text);font-weight:700;"></span></div>
+        <div id="horario-hoy"></div>
+      </div>
+    </div>
+
+    <!-- ===== HÁBITOS ===== -->
+    <div class="tab" id="tab-habitos">
+      <div class="card">
+        <div class="card-title"><i class="ti ti-brain"></i> Hábitos de estudio <span id="pts-estudio" style="margin-left:auto;font-size:12px;color:var(--blue);font-weight:700;"></span></div>
+        <div id="habitos-estudio"></div>
+      </div>
+      <div class="card">
+        <div class="card-title"><i class="ti ti-heart-rate"></i> Hábitos de salud <span id="pts-salud" style="margin-left:auto;font-size:12px;color:var(--green);font-weight:700;"></span></div>
+        <div id="habitos-salud"></div>
+      </div>
+      <div class="card">
+        <div class="card-title"><i class="ti ti-user-check"></i> Hábitos personales <span id="pts-personal" style="margin-left:auto;font-size:12px;color:var(--purple);font-weight:700;"></span></div>
+        <div id="habitos-personal"></div>
+      </div>
+    </div>
+
+    <!-- ===== ESTUDIO ===== -->
+    <div class="tab" id="tab-estudio">
+      <div class="card">
+        <div class="card-title"><i class="ti ti-writing"></i> ¿Qué aprendí hoy?</div>
+        <select class="input-field" id="aprendido-materia">
+          <option value="">Selecciona la materia</option>
+          <option>Matemáticas</option>
+          <option>Lenguaje</option>
+          <option>Ciencias Naturales</option>
+          <option>Sociales</option>
+          <option>Inglés</option>
+          <option>Filosofía</option>
+          <option>Física</option>
+          <option>Pre-ICFES (general)</option>
+        </select>
+        <textarea class="textarea-field" id="aprendido-texto" placeholder="Escribe lo que aprendiste hoy: conceptos clave, fórmulas, reflexiones, dudas resueltas..."></textarea>
+        <button class="btn btn-primary" onclick="guardarAprendido()">Guardar aprendizaje ✓</button>
+      </div>
+      <div id="aprendido-lista"></div>
+    </div>
+
+    <!-- ===== TAREAS ===== -->
+    <div class="tab" id="tab-tareas">
+      <div class="card">
+        <div class="card-title"><i class="ti ti-plus"></i> Nueva tarea del colegio</div>
+        <input class="input-field" id="tarea-titulo" placeholder="Nombre de la tarea o trabajo"/>
+        <select class="input-field" id="tarea-materia">
+          <option value="">Materia (opcional)</option>
+          <option>Matemáticas</option>
+          <option>Lenguaje</option>
+          <option>Ciencias Naturales</option>
+          <option>Sociales</option>
+          <option>Inglés</option>
+          <option>Filosofía</option>
+          <option>Física</option>
+          <option>Educación Física</option>
+          <option>Otra</option>
+        </select>
+        <label style="font-size:12px;color:var(--text2);display:block;margin-bottom:4px;">Fecha de entrega</label>
+        <input class="input-field" id="tarea-fecha" type="date"/>
+        <button class="btn btn-primary" onclick="agregarTarea()">Agregar tarea</button>
+      </div>
+      <div class="card">
+        <div class="card-title"><i class="ti ti-list-check"></i> Mis tareas</div>
+        <div id="tareas-lista"></div>
+      </div>
+    </div>
+
+    <!-- ===== METAS ===== -->
+    <div class="tab" id="tab-metas">
+      <div class="card">
+        <div class="card-title"><i class="ti ti-flag"></i> Nueva meta del mes</div>
+        <input class="input-field" id="meta-texto" placeholder="Ej: Sacar más de 80 en el simulacro de matemáticas"/>
+        <select class="input-field" id="meta-categoria">
+          <option value="blue">📚 Académica</option>
+          <option value="green">🌱 Personal</option>
+          <option value="amber">⚽ Deportiva</option>
+          <option value="purple">🎙️ Proyecto (radio)</option>
+          <option value="teal">💡 Otro</option>
+        </select>
+        <button class="btn btn-primary" onclick="agregarMeta()">Agregar meta</button>
+      </div>
+      <div class="card">
+        <div class="card-title"><i class="ti ti-stars"></i> Metas — <span id="mes-label"></span></div>
+        <div id="metas-lista"></div>
+      </div>
+    </div>
+
+    <!-- ===== PROGRESO ===== -->
+    <div class="tab" id="tab-progreso">
+      <div class="card">
+        <div class="card-title"><i class="ti ti-chart-line"></i> Puntos de hábitos — últimos 7 días</div>
+        <div class="chart-wrap" style="height:200px;">
+          <canvas id="chartHabitos" role="img" aria-label="Gráfica de puntos de hábitos de los últimos 7 días">Muestra tus puntos acumulados cada día.</canvas>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title"><i class="ti ti-chart-bar"></i> Hábitos completados hoy por categoría</div>
+        <div class="chart-wrap" style="height:180px;">
+          <canvas id="chartCategorias" role="img" aria-label="Hábitos completados por categoría hoy">Estudio, Salud y Personal.</canvas>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title"><i class="ti ti-trophy"></i> Resumen general</div>
+        <ul class="meta-list" id="resumen-lista"></ul>
+      </div>
+    </div>
+
+  </div><!-- /content -->
+</div><!-- /app -->
+
+<script>
+const DIAS_FULL=['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
+const DIAS_CORTO=['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+const MESES=['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+
+const HABITOS={
+  estudio:[
+    {id:'e1',texto:'Estudiar 30-60 min (ICFES)',pts:3},
+    {id:'e2',texto:'Repasar apuntes del día',pts:2},
+    {id:'e3',texto:'Leer 15 minutos',pts:2},
+    {id:'e4',texto:'Practicar área débil (matemáticas u otra)',pts:3},
+    {id:'e5',texto:'Sin celular mientras estudio',pts:1},
+  ],
+  salud:[
+    {id:'s1',texto:'Dormí bien anoche (8-10 horas)',pts:2},
+    {id:'s2',texto:'Tomé suficiente agua',pts:1},
+    {id:'s3',texto:'Comí frutas o verduras',pts:1},
+    {id:'s4',texto:'Actividad física hoy',pts:2},
+  ],
+  personal:[
+    {id:'p1',texto:'Tendí la cama al levantarme',pts:1},
+    {id:'p2',texto:'Fui puntual a clases y compromisos',pts:1},
+    {id:'p3',texto:'Ayudé en casa',pts:1},
+    {id:'p4',texto:'Sin pantallas 30 min antes de dormir',pts:1},
+  ]
+};
+
+const HORARIO={
+  1:[
+    {t:'5:30',lbl:'Despertar · tender cama · prepararse',bg:'#e8f0fe',tc:'#0c3a8a'},
+    {t:'6:00–7:00',lbl:'Estudio ICFES — Matemáticas',bg:'#e8f0fe',tc:'#1a56db'},
+    {t:'7:00',lbl:'Colegio',bg:'#f0f2f8',tc:'#374151'},
+    {t:'4:30–6:30',lbl:'⚽ Entrenamiento microfútbol',bg:'#e6f4ee',tc:'#0e7f4f'},
+    {t:'7:00–8:00',lbl:'Repaso apuntes + tareas del colegio',bg:'#e8f0fe',tc:'#1a56db'},
+    {t:'9:00',lbl:'Lectura 15 min · dormir',bg:'#ede9fe',tc:'#6d28d9'},
+  ],
+  2:[
+    {t:'5:30',lbl:'Despertar · prepararse',bg:'#e8f0fe',tc:'#0c3a8a'},
+    {t:'6:00–7:00',lbl:'Estudio ICFES — Lenguaje',bg:'#e8f0fe',tc:'#1a56db'},
+    {t:'7:00–3:00',lbl:'Colegio (sale 3:00 PM)',bg:'#f0f2f8',tc:'#374151'},
+    {t:'3:30–5:00',lbl:'Tareas del colegio',bg:'#fef3c7',tc:'#b45309'},
+    {t:'5:00–6:30',lbl:'Estudio ICFES — simulacro o práctica',bg:'#e8f0fe',tc:'#1a56db'},
+    {t:'7:30',lbl:'Lectura · dormir',bg:'#ede9fe',tc:'#6d28d9'},
+  ],
+  3:[
+    {t:'5:30',lbl:'Despertar · prepararse',bg:'#e8f0fe',tc:'#0c3a8a'},
+    {t:'6:00–7:00',lbl:'Estudio ICFES — Ciencias Naturales',bg:'#e8f0fe',tc:'#1a56db'},
+    {t:'7:00',lbl:'Colegio',bg:'#f0f2f8',tc:'#374151'},
+    {t:'4:30–6:30',lbl:'⚽ Entrenamiento microfútbol',bg:'#e6f4ee',tc:'#0e7f4f'},
+    {t:'7:00–8:00',lbl:'Repaso + tareas pendientes',bg:'#e8f0fe',tc:'#1a56db'},
+    {t:'9:00',lbl:'Lectura · dormir',bg:'#ede9fe',tc:'#6d28d9'},
+  ],
+  4:[
+    {t:'5:30',lbl:'Despertar · prepararse',bg:'#e8f0fe',tc:'#0c3a8a'},
+    {t:'6:00–7:00',lbl:'Estudio ICFES — Sociales / Inglés',bg:'#e8f0fe',tc:'#1a56db'},
+    {t:'7:00–3:00',lbl:'Colegio (sale 3:00 PM)',bg:'#f0f2f8',tc:'#374151'},
+    {t:'3:30–5:00',lbl:'Estudio ICFES — simulacro completo',bg:'#e8f0fe',tc:'#1a56db'},
+    {t:'5:00–6:00',lbl:'Tareas del colegio',bg:'#fef3c7',tc:'#b45309'},
+    {t:'7:30',lbl:'Lectura · dormir',bg:'#ede9fe',tc:'#6d28d9'},
+  ],
+  5:[
+    {t:'5:30',lbl:'Despertar · prepararse',bg:'#e8f0fe',tc:'#0c3a8a'},
+    {t:'6:00–7:00',lbl:'Estudio ICFES — repaso semanal',bg:'#e8f0fe',tc:'#1a56db'},
+    {t:'7:00',lbl:'Colegio',bg:'#f0f2f8',tc:'#374151'},
+    {t:'2:00–5:30',lbl:'🎙️ Programa radial',bg:'#ccfbf1',tc:'#0f766e'},
+    {t:'6:00–7:00',lbl:'Descanso / cena familiar',bg:'#f0f2f8',tc:'#374151'},
+    {t:'7:30',lbl:'Lectura · dormir temprano',bg:'#ede9fe',tc:'#6d28d9'},
+  ],
+  6:[
+    {t:'5:30',lbl:'Despertar · prepararse',bg:'#e8f0fe',tc:'#0c3a8a'},
+    {t:'6:00–7:00',lbl:'Estudio ICFES — área libre',bg:'#e8f0fe',tc:'#1a56db'},
+    {t:'7:00–1:00',lbl:'📚 Pre-ICFES (clases sabatinas)',bg:'#dbeafe',tc:'#0c3a8a'},
+    {t:'1:30–3:00',lbl:'Almuerzo + descanso',bg:'#f0f2f8',tc:'#374151'},
+    {t:'3:00–4:00',lbl:'Revisión de errores del simulacro',bg:'#fee2e2',tc:'#b91c1c'},
+    {t:'8:00',lbl:'Dormir (mañana es descanso)',bg:'#ede9fe',tc:'#6d28d9'},
+  ],
+  0:[
+    {t:'5:30',lbl:'Levantarse con calma',bg:'#e8f0fe',tc:'#0c3a8a'},
+    {t:'6:00–8:00',lbl:'Tiempo libre · desayuno tranquilo',bg:'#f0f2f8',tc:'#374151'},
+    {t:'9:00–11:00',lbl:'Repaso semanal ligero (sin presión)',bg:'#e8f0fe',tc:'#1a56db'},
+    {t:'11:00',lbl:'⚽ Deporte / familia / paseo',bg:'#e6f4ee',tc:'#0e7f4f'},
+    {t:'8:00',lbl:'Preparar la semana · dormir',bg:'#ede9fe',tc:'#6d28d9'},
+  ],
+};
+
+let state={checked:{},tareas:[],metas:[],aprendido:[]};
+try{const s=localStorage.getItem('icfes_v2');if(s)state=JSON.parse(s);}catch(e){}
+function save(){try{localStorage.setItem('icfes_v2',JSON.stringify(state));}catch(e){}}
+
+function hoy(){return new Date().toISOString().split('T')[0];}
+function getDia(){return new Date().getDay();}
+
+function showTab(t,btn){
+  document.querySelectorAll('.tab').forEach(el=>el.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(el=>el.classList.remove('active'));
+  document.getElementById('tab-'+t).classList.add('active');
+  btn.classList.add('active');
+  if(t==='progreso') setTimeout(initCharts,50);
+}
+
+function calcScore(){
+  const k=hoy();const ch=state.checked[k]||{};let pts=0;
+  [...HABITOS.estudio,...HABITOS.salud,...HABITOS.personal].forEach(h=>{if(ch[h.id])pts+=h.pts;});
+  return pts;
+}
+
+function renderInicio(){
+  const d=getDia();
+  document.getElementById('dia-nombre').textContent=DIAS_FULL[d];
+
+  // Countdown
+  const presaber=new Date('2026-07-27T00:00:00');
+  const hoyD=new Date();hoyD.setHours(0,0,0,0);
+  const diff=Math.max(0,Math.round((presaber-hoyD)/(1000*60*60*24)));
+  document.getElementById('dias-restantes').textContent=diff;
+  document.getElementById('dias-sub').textContent='días para las Pre-Saber · ¡Tú puedes llegar a 400!';
+  const inicio=new Date('2026-06-01');
+  const totalDias=Math.round((presaber-inicio)/(86400000));
+  const elapsed=totalDias-diff;
+  const pct=Math.max(0,Math.min(100,Math.round(elapsed/totalDias*100)));
+  document.getElementById('meta-progreso').style.width=pct+'%';
+  document.getElementById('meta-pct').textContent=pct+'% del camino recorrido';
+
+  // Stats
+  const allH=[...HABITOS.estudio,...HABITOS.salud,...HABITOS.personal];
+  const k=hoy();const ch=state.checked[k]||{};
+  const done=allH.filter(h=>ch[h.id]).length;
+  document.getElementById('stat-habitos-hoy').textContent=done+'/'+allH.length;
+  document.getElementById('stat-tareas-pend').textContent=state.tareas.filter(t=>!t.done).length;
+  document.getElementById('score-badge').textContent=calcScore()+' pts';
+
+  // Streak
+  const today=new Date();
+  let html='';
+  for(let i=6;i>=0;i--){
+    const d2=new Date(today);d2.setDate(today.getDate()-i);
+    const k2=d2.toISOString().split('T')[0];
+    const ch2=state.checked[k2]||{};
+    const pts=allH.filter(h=>ch2[h.id]).length;
+    const isToday=i===0;
+    html+=`<div class="streak-dot ${pts>0?'filled':''} ${isToday?'today':''}">${DIAS_CORTO[d2.getDay()]}</div>`;
+  }
+  document.getElementById('streak-row').innerHTML=html;
+
+  // Horario
+  const hor=HORARIO[d]||[];
+  document.getElementById('horario-hoy').innerHTML=hor.length===0?'<div class="empty-state">Sin horario para hoy</div>':
+    hor.map(b=>`<div class="schedule-row"><div class="time-label">${b.t}</div><div class="schedule-block" style="background:${b.bg};color:${b.tc};">${b.lbl}</div></div>`).join('');
+}
+
+function renderHabitos(){
+  const k=hoy();const ch=state.checked[k]||{};
+  function renderList(lista,containerId,ptsId,color){
+    let pts=0;lista.forEach(h=>{if(ch[h.id])pts+=h.pts;});
+    document.getElementById(ptsId).textContent=pts+' pts';
+    document.getElementById(containerId).innerHTML=lista.map(h=>`
+      <div class="checklist-item">
+        <button class="check-box ${ch[h.id]?'done':''}" onclick="toggleHabito('${h.id}')"></button>
+        <div>
+          <div class="check-label ${ch[h.id]?'done':''}">${h.texto}</div>
+          <div class="check-meta">+${h.pts} punto${h.pts>1?'s':''}</div>
+        </div>
+      </div>`).join('');
+  }
+  renderList(HABITOS.estudio,'habitos-estudio','pts-estudio','#1a56db');
+  renderList(HABITOS.salud,'habitos-salud','pts-salud','#0e7f4f');
+  renderList(HABITOS.personal,'habitos-personal','pts-personal','#6d28d9');
+}
+
+function toggleHabito(id){
+  const k=hoy();
+  if(!state.checked[k])state.checked[k]={};
+  state.checked[k][id]=!state.checked[k][id];
+  save();renderHabitos();renderInicio();
+}
+
+function renderEstudio(){
+  const lista=[...state.aprendido].reverse();
+  document.getElementById('aprendido-lista').innerHTML=lista.length===0?'':
+    `<div class="card"><div class="card-title"><i class="ti ti-book"></i> Mis aprendizajes (${lista.length})</div>`+
+    lista.map(a=>`<div class="aprendido-entry"><div class="aprendido-date">${a.materia} · ${a.fecha}</div><div class="aprendido-text">${a.texto}</div></div>`).join('')+`</div>`;
+}
+
+function guardarAprendido(){
+  const m=document.getElementById('aprendido-materia').value;
+  const t=document.getElementById('aprendido-texto').value.trim();
+  if(!t){alert('Escribe algo que hayas aprendido hoy');return;}
+  const hoyStr=new Date().toLocaleDateString('es-CO',{day:'numeric',month:'long',year:'numeric'});
+  state.aprendido.push({fecha:hoyStr,materia:m||'General',texto:t});
+  document.getElementById('aprendido-texto').value='';
+  save();renderEstudio();
+}
+
+function renderTareas(){
+  const lista=state.tareas;
+  const pend=lista.filter(t=>!t.done);const done=lista.filter(t=>t.done);
+  let html='';
+  if(lista.length===0){html='<div class="empty-state">No hay tareas. ¡Agrega la primera!</div>';}
+  else{
+    if(pend.length){
+      html+='<div class="section-label">Pendientes ('+pend.length+')</div>';
+      html+=lista.map((t,i)=>!t.done?renderTareaItem(t,i):'').join('');
+    }
+    if(done.length){
+      html+='<div class="section-label" style="margin-top:12px;">Completadas ('+done.length+')</div>';
+      html+=lista.map((t,i)=>t.done?renderTareaItem(t,i):'').join('');
+    }
+  }
+  document.getElementById('tareas-lista').innerHTML=html;
+  document.getElementById('stat-tareas-pend').textContent=pend.length;
+}
+function renderTareaItem(t,i){
+  return `<div class="tarea-item">
+    <div class="tarea-header">
+      <div style="flex:1;">
+        <div class="tarea-title" style="${t.done?'text-decoration:line-through;opacity:.5':''}">${t.titulo}</div>
+        <div class="tarea-meta">
+          ${t.materia?`<span class="badge badge-blue">${t.materia}</span>`:''}
+          ${t.fecha?`<span>📅 ${t.fecha}</span>`:''}
+        </div>
+      </div>
+      <div class="tarea-actions">
+        <button class="btn-sm" onclick="toggleTarea(${i})">${t.done?'Reabrir':'Listo ✓'}</button>
+        <button class="btn-danger" onclick="deleteTarea(${i})">×</button>
+      </div>
+    </div>
+  </div>`;
+}
+function agregarTarea(){
+  const titulo=document.getElementById('tarea-titulo').value.trim();
+  if(!titulo){alert('Escribe el nombre de la tarea');return;}
+  state.tareas.push({titulo,materia:document.getElementById('tarea-materia').value,fecha:document.getElementById('tarea-fecha').value,done:false});
+  document.getElementById('tarea-titulo').value='';
+  document.getElementById('tarea-materia').value='';
+  document.getElementById('tarea-fecha').value='';
+  save();renderTareas();
+}
+function toggleTarea(i){state.tareas[i].done=!state.tareas[i].done;save();renderTareas();}
+function deleteTarea(i){if(confirm('¿Eliminar esta tarea?')){state.tareas.splice(i,1);save();renderTareas();}}
+
+function renderMetas(){
+  const colors={blue:'badge-blue',green:'badge-green',amber:'badge-amber',purple:'badge-purple',teal:'badge-teal'};
+  const emojis={blue:'📚',green:'🌱',amber:'⚽',purple:'🎙️',teal:'💡'};
+  const labels={blue:'Académica',green:'Personal',amber:'Deportiva',purple:'Radio',teal:'Otro'};
+  const now=new Date();
+  document.getElementById('mes-label').textContent=MESES[now.getMonth()]+' '+now.getFullYear();
+  document.getElementById('metas-lista').innerHTML=state.metas.length===0?'<div class="empty-state">Agrega tu primera meta del mes</div>':
+    state.metas.map((m,i)=>`
+      <div class="goal-item">
+        <button class="goal-check ${m.done?'done':''}" onclick="toggleMeta(${i})"></button>
+        <div style="flex:1;">
+          <div style="font-size:14px;${m.done?'text-decoration:line-through;opacity:.5':'color:var(--text)'}">${m.texto}</div>
+          <span class="badge ${colors[m.cat]||'badge-blue'}" style="margin-top:4px;display:inline-block;">${emojis[m.cat]||'📌'} ${labels[m.cat]||'Académica'}</span>
+        </div>
+        <button class="btn-danger" onclick="deleteMeta(${i})">×</button>
+      </div>`).join('');
+}
+function agregarMeta(){
+  const texto=document.getElementById('meta-texto').value.trim();
+  if(!texto){alert('Escribe tu meta');return;}
+  state.metas.push({texto,cat:document.getElementById('meta-categoria').value,done:false});
+  document.getElementById('meta-texto').value='';
+  save();renderMetas();
+}
+function toggleMeta(i){state.metas[i].done=!state.metas[i].done;save();renderMetas();}
+function deleteMeta(i){if(confirm('¿Eliminar esta meta?')){state.metas.splice(i,1);save();renderMetas();}}
+
+let chart1=null,chart2=null;
+function initCharts(){
+  const labels=[],data=[];
+  const today=new Date();
+  const allH=[...HABITOS.estudio,...HABITOS.salud,...HABITOS.personal];
+  for(let i=6;i>=0;i--){
+    const d2=new Date(today);d2.setDate(today.getDate()-i);
+    const k=d2.toISOString().split('T')[0];
+    const ch=state.checked[k]||{};
+    let pts=0;allH.forEach(h=>{if(ch[h.id])pts+=h.pts;});
+    labels.push(DIAS_CORTO[d2.getDay()]);data.push(pts);
+  }
+  if(chart1)chart1.destroy();
+  const c1=document.getElementById('chartHabitos').getContext('2d');
+  chart1=new Chart(c1,{type:'line',data:{labels,datasets:[{label:'Puntos',data,borderColor:'#1a56db',backgroundColor:'rgba(26,86,219,.1)',tension:.35,fill:true,pointRadius:6,pointBackgroundColor:'#1a56db',pointBorderColor:'#fff',pointBorderWidth:2}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,grid:{color:'rgba(0,0,0,.05)'},ticks:{stepSize:2}}}}});
+
+  const k=hoy();const ch=state.checked[k]||{};
+  const cE=HABITOS.estudio.filter(h=>ch[h.id]).length;
+  const cS=HABITOS.salud.filter(h=>ch[h.id]).length;
+  const cP=HABITOS.personal.filter(h=>ch[h.id]).length;
+  if(chart2)chart2.destroy();
+  const c2=document.getElementById('chartCategorias').getContext('2d');
+  chart2=new Chart(c2,{type:'bar',data:{labels:['Estudio ('+HABITOS.estudio.length+')','Salud ('+HABITOS.salud.length+')','Personal ('+HABITOS.personal.length+')'],datasets:[{label:'Completados',data:[cE,cS,cP],backgroundColor:['#1a56db','#0e7f4f','#6d28d9'],borderRadius:6}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{stepSize:1},grid:{color:'rgba(0,0,0,.05)'}}}}});
+
+  const totalDone=allH.filter(h=>(state.checked[hoy()]||{})[h.id]).length;
+  const metasDone=state.metas.filter(m=>m.done).length;
+  const tareasDone=state.tareas.filter(t=>t.done).length;
+  document.getElementById('resumen-lista').innerHTML=`
+    <li><span>Hábitos completados hoy</span><span>${totalDone}/${allH.length}</span></li>
+    <li><span>Puntos acumulados hoy</span><span style="color:#1a56db;">${calcScore()}</span></li>
+    <li><span>Metas del mes logradas</span><span>${metasDone}/${state.metas.length}</span></li>
+    <li><span>Tareas del colegio listas</span><span>${tareasDone}/${state.tareas.length}</span></li>
+    <li><span>Aprendizajes registrados</span><span>${state.aprendido.length}</span></li>`;
+}
+
+// Notificaciones de recordatorio
+function pedirNotificaciones(){
+  if('Notification' in window && Notification.permission==='default'){
+    Notification.requestPermission();
+  }
+}
+function programarRecordatorio(){
+  if('Notification' in window && Notification.permission==='granted'){
+    const msg=new Notification('Mi Plan ICFES 🎯',{body:'¡Es hora de marcar tus hábitos del día! Quedan '+document.getElementById('dias-restantes').textContent+' días para las Pre-Saber.',icon:''});
+  }
+}
+
+renderInicio();
+renderHabitos();
+renderEstudio();
+renderTareas();
+renderMetas();
+pedirNotificaciones();
+
+// Recordatorio automático a las 9 PM
+setInterval(()=>{
+  const now=new Date();
+  if(now.getHours()===21&&now.getMinutes()===0) programarRecordatorio();
+},60000);
+</script>
+</body>
+</html>
